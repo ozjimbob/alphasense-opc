@@ -5,6 +5,7 @@ import serial
 import time
 import struct
 import datetime
+import sys
 
 # Init
 def initOPC(ser):
@@ -63,12 +64,9 @@ def getHist(ser):
 def getData(ser):
 	ser.write(bytearray([0x61,0x32]))
 	nl=ser.read(2)
-	print(nl)
 	time.sleep(.1)
 	ser.write(bytearray([0x61,0x32,0x32,0x32,0x32,0x32,0x32,0x32,0x32,0x32,0x32,0x32,0x32]))
 	ans=bytearray(ser.read(13))
-	print(len(ans))
-	print(ans[1:13])
 	b1 = ans[1:5]
 	b2 = ans[5:9]
 	b3 = ans[9:13]
@@ -90,6 +88,7 @@ if __name__ == "__main__":
         "timeout": 1
 	}
 
+	ofile=sys.argv[1]
 
 	ser = serial.Serial(**serial_opts)
 	ser.open()
@@ -107,18 +106,17 @@ if __name__ == "__main__":
 	time.sleep(5)	
 
 	print("Opening Output File:")
-	f=open("out.csv",'w+')
+	f=open(ofile,'w+')
+	print("time,pm1,pm2,pm10",file=f)
 	print("Looping:")
-	for i in range(0,400):
-		print("Loop:"+str(i))
-		#t=getData(ser)
+	for i in range(0,4320):
 		t=getData(ser)
 		ts = time.time()
 		tnow = datetime.datetime.fromtimestamp(ts).strftime('%Y-%m-%d %H:%M:%S')
 		print(tnow + "," + str(t[0]) + "," + str(t[1]) + "," + str(t[2]), file=f)
 		print(tnow + "," + str(t[0]) + "," + str(t[1]) + "," + str(t[2]))
 		f.flush()
-		time.sleep(5)
+		time.sleep(59)
 	
 	print("Closing:")
 
